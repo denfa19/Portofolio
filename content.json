@@ -1,0 +1,152 @@
+{
+  "profile": {
+    "name": "Dea Nur Fauzi",
+    "title": "Production & Process Engineer",
+    "plateNo": "DNF-1997-07",
+    "rev": "REV 2026.07",
+    "domicile": "Bekasi, Indonesia",
+    "status": "Male · Indonesian",
+    "phoneDisplay": "+62 857-7672-5643",
+    "phoneHref": "+6285776725643",
+    "email": "deanfauzi_97@outlook.com",
+    "linkedinDisplay": "/dea-nur-fauzi",
+    "linkedinUrl": "https://linkedin.com/in/dea-nur-fauzi-2ba12373/"
+  },
+  "hero": {
+    "intro": "Read like a Cp/Cpk control chart: each point is a documented result from the roles below, plotted against the upper spec limit (UCL). Every point sits inside limits — process in control.",
+    "points": [
+      { "metric": "−70%", "label": "Panasonic", "year": "2018" },
+      { "metric": "−50%", "label": "Cold Press Kaizen", "year": "2021" },
+      { "metric": "+100%", "label": "Yamaha Efficiency", "year": "2019–24" },
+      { "metric": "<5%", "label": "Hyundai Downtime", "year": "2024–now" }
+    ]
+  },
+  "experience": [
+    {
+      "when": "Oct 2024 — Present",
+      "company": "PT. Hyundai Energy Indonesia (Hyundai Mobis Group)",
+      "location": "Bekasi, West Java",
+      "role": "Engineering — Product & SAP Plant Maintenance",
+      "bullets": [
+        "Analyzes and improves Work Instructions, Control Plan, PFMEA and Process Flow Chart; performs MES data analysis for Cp/Cpk under IATF 16949.",
+        "Manages equipment data in SAP Plant Maintenance — equipment hierarchies, locations, Preventive Maintenance scheduling, and spare parts.",
+        "Troubleshoots equipment failures via root cause analysis (PDCA / 5 Why), implements corrective actions, and reports to management.",
+        "Built a strategic plan around MTTR/MTBF, holding annual equipment downtime under 5%; submits monthly reports."
+      ]
+    },
+    {
+      "when": "Sept 2019 — Oct 2024",
+      "company": "PT. Yamaha Musical Products Asia",
+      "location": "Bekasi, West Java",
+      "role": "Smart Factory & Production Engineering",
+      "bullets": [
+        "Led development of new models, ensuring accurate process implementation; designed, built and installed new machinery.",
+        "Analyzed production processes, improving efficiency by 100%; ran cost-down and labor-cost improvement activity.",
+        "Built Power BI dashboards to track production progress; supported ISO 9001 via Work Instructions and QC processes.",
+        "Participated in Yamaha Productivity Management (Kaizen); calculated standard and cycle times to optimize workflows."
+      ]
+    },
+    {
+      "when": "Jul 2018 — Aug 2018",
+      "company": "PT. Panasonic Manufacturing Indonesia",
+      "location": "East Jakarta",
+      "role": "Student Internship — Production Engineer, Refrigerator BU",
+      "bullets": [
+        "Analyzed machine operations in the refrigerator business unit to identify improvement areas.",
+        "Supported engineering staff and operators in troubleshooting.",
+        "Developed a sensor and actuator checking system in HMI, cutting estimated troubleshooting time by 70%."
+      ]
+    }
+  ],
+  "skillBins": [
+    {
+      "no": "BIN 01",
+      "title": "Process & Quality",
+      "chips": ["Cp/Cpk (MES)", "PDCA", "Root Cause Analysis", "SAP Plant Maintenance", "QC7 Tools", "Value Stream Mapping", "Kaizen", "Standard Time"]
+    },
+    {
+      "no": "BIN 02",
+      "title": "Design & Simulation",
+      "chips": ["AutoCAD", "Eagle (Schematic/PCB)", "Proteus", "Festo FluidSIM", "Mechanical Drawing", "Electro-Pneumatic"]
+    },
+    {
+      "no": "BIN 03",
+      "title": "Control Systems",
+      "chips": ["Omron CX-One", "Schneider SoMachine", "Mitsubishi GX Works2", "Atmega", "Arduino", "STM32"]
+    },
+    {
+      "no": "BIN 04",
+      "title": "Software",
+      "chips": ["LabVIEW", "Python", "JavaScript", "SQL", "VB / C/C++", "Power Automate", "Power BI"]
+    }
+  ],
+  "education": [
+    { "school": "Binus University", "deg": "Bachelor's Degree, Computer Science (Binus Online Learning)", "meta": "Bekasi, Indonesia · Nov 2021 – Nov 2023 · GPA 3.15" },
+    { "school": "State Polytechnic of Jakarta", "deg": "Associate's Degree, Electrical Engineering — Electronics Control", "meta": "Depok, Indonesia · Sep 2016 – Jul 2019 · GPA 3.35" }
+  ],
+  "certifications": [
+    { "title": "TOEFL Prediction Test", "url": "https://www.e-ujian.com/cert/hHSxYb.262014", "date": "Jun 2025" },
+    { "title": "Memulai Pemrograman dengan Python", "url": "https://www.dicoding.com/certificates/GRX5QVN8VZ0M", "date": "Mar 2024" },
+    { "title": "Belajar Dasar Visualisasi Data", "url": "https://www.dicoding.com/certificates/KEXL8K4DMZG2", "date": "Mar 2024" },
+    { "title": "IEEE Journal — Android Food-Sharing App", "url": "https://ieeexplore.ieee.org/document/10425590", "date": "Feb 2024" },
+    { "title": "Belajar Dasar SQL", "url": "https://www.dicoding.com/certificates/81P272KYJZOY", "date": "Sep 2023" },
+    { "title": "Belajar Membuat Front-End Web", "url": "https://www.dicoding.com/certificates/JLX13GJMNP72", "date": "Jul 2021" },
+    { "title": "Belajar Dasar Pemrograman Web", "url": "https://www.dicoding.com/certificates/L4PQ338WQPO1", "date": "Jul 2021" }
+  ],
+  "projects": [
+    {
+      "code": "WO-01 · LEAD",
+      "title": "Automated Piano Soundboard Pressing Machine",
+      "dates": "Nov 2022 – Oct 2023",
+      "bullets": [
+        "Led design and build of a high-speed automated soundboard pressing machine.",
+        "Mitsubishi PLC control system using Ladder Diagram programming.",
+        "Dual-sided loading system for continuous production.",
+        "Hydraulic hot press with precise temperature control."
+      ]
+    },
+    {
+      "code": "WO-02 · LEAD",
+      "title": "New Product Development",
+      "dates": "Dec 2022 – Oct 2023",
+      "bullets": [
+        "Led new product model development, aligning design specs with production.",
+        "Published development schedules, assembly and part drawings.",
+        "Coordinated cross-functional teams for on-time launches.",
+        "Designed new jigs and tooling; wrote work instructions and QC procedures."
+      ]
+    },
+    {
+      "code": "WO-03 · KAIZEN",
+      "title": "Cold Press Process Optimization",
+      "dates": "Dec 2020 – Feb 2021",
+      "bullets": [
+        "Ran a Kaizen event enabling simultaneous double-sided pressing.",
+        "Cut cycle time from 180 to 90 minutes — a 50% reduction, doubling productivity.",
+        "Solved space limitations with a new pressing configuration."
+      ]
+    },
+    {
+      "code": "WO-04 · QA",
+      "title": "Cleanroom Painting Robot",
+      "dates": "Feb 2023 – Feb 2024",
+      "bullets": [
+        "Managed the cleanroom environment for painting robots at Yamaha Music.",
+        "Ran weekly dust-quantity checks and analyzed data against quality standards."
+      ]
+    }
+  ],
+  "achievements": [
+    { "tag": "2019", "text": "Project Leader & Programmer, Automatic Robot Legs — National Robotic Competition (Ministry of Education and Culture)" },
+    { "tag": "2018", "text": "Winner, 4th Place — National Robotic Competition (Ministry of Education and Culture)" },
+    { "tag": "2019", "text": "Winner, 3rd Place — Regional Robotic Competition (Ministry of Education and Culture)" },
+    { "tag": "2017–19", "text": "Member, PNJ Robot Teams — National Robotic Competitions" },
+    { "tag": "2017–18", "text": "Inventory & Hygiene, PNJ Psychorobotic" },
+    { "tag": "2018", "text": "Committee, PLC Division — E-TIME Electrical Competition" },
+    { "tag": "2017", "text": "Participant, Programmable Logic Controller Competition — E-TIME" }
+  ],
+  "footer": {
+    "tagline": "Let's talk process.",
+    "plateFoot": "BEKASI, ID · PROCESS IN CONTROL"
+  }
+}

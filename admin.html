@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Portfolio Editor</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ PASSCODE GATE ============ -->
+<div id="gate-view" class="plate gate">
+  <span class="rm-bl"></span><span class="rm-br"></span>
+  <h1 id="gate-title">Admin Access</h1>
+  <p class="hint" id="gate-hint">This is a soft local gate only. Nothing is truly protected until you also enter a GitHub token with write access on the next screen — that's the real lock.</p>
+  <div class="field">
+    <label for="passcode">Passcode</label>
+    <input type="password" id="passcode" autocomplete="off">
+  </div>
+  <div class="row">
+    <button class="btn" id="gate-submit">Unlock</button>
+    <button class="btn secondary" id="gate-reset" title="Clear the locally-saved passcode on this browser">Reset passcode</button>
+  </div>
+  <div class="msg" id="gate-msg"></div>
+</div>
+
+<!-- ============ EDITOR VIEW ============ -->
+<div id="editor-view" class="admin-shell" style="display:none;">
+  <h1>Portfolio Editor</h1>
+  <p class="hint">Edits are stored in <code>content.json</code> in your GitHub repo. Saving here commits directly to that repo via the GitHub API — GitHub Pages will pick it up within a minute or so.</p>
+
+  <div class="plate" style="padding:20px 24px; margin-bottom:24px;">
+    <span class="rm-bl"></span><span class="rm-br"></span>
+    <h2 style="font-size:1rem; margin-top:0;">Repository connection</h2>
+    <div class="row">
+      <div class="field" style="flex:1; min-width:160px;">
+        <label for="gh-owner">GitHub username / org</label>
+        <input type="text" id="gh-owner" placeholder="e.g. deanurfauzi">
+      </div>
+      <div class="field" style="flex:1; min-width:160px;">
+        <label for="gh-repo">Repository name</label>
+        <input type="text" id="gh-repo" placeholder="e.g. portfolio">
+      </div>
+      <div class="field" style="flex:1; min-width:120px;">
+        <label for="gh-branch">Branch</label>
+        <input type="text" id="gh-branch" value="main">
+      </div>
+    </div>
+    <div class="field">
+      <label for="gh-token">GitHub personal access token (fine-grained, Contents: Read &amp; Write, this repo only)</label>
+      <input type="password" id="gh-token" placeholder="ghp_… or github_pat_…" autocomplete="off">
+    </div>
+    <div class="row">
+      <button class="btn secondary" id="btn-load">Load content.json from repo</button>
+      <label class="hint" style="display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="remember-conn" style="width:auto;"> remember owner/repo/branch on this browser
+      </label>
+    </div>
+    <div class="msg" id="conn-msg"></div>
+  </div>
+
+  <div class="plate" style="padding:20px 24px;">
+    <span class="rm-bl"></span><span class="rm-br"></span>
+    <h2 style="font-size:1rem; margin-top:0;">content.json</h2>
+    <div class="field">
+      <textarea id="json-editor" rows="26" spellcheck="false" placeholder="Click &quot;Load content.json from repo&quot; above, or paste JSON here manually."></textarea>
+    </div>
+    <div class="row">
+      <button class="btn" id="btn-save">Save to GitHub</button>
+      <button class="btn secondary" id="btn-format">Format JSON</button>
+      <button class="btn secondary" id="btn-download">Download as file</button>
+      <a href="index.html" target="_blank" class="btn secondary" style="text-decoration:none; display:inline-block;">Preview live site</a>
+      <button class="btn danger" id="btn-lock" style="margin-left:auto;">Lock editor</button>
+    </div>
+    <div class="msg" id="save-msg"></div>
+  </div>
+</div>
+
+<script>
+async function sha256Hex(str){
+  const buf = new TextEncoder().encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function b64EncodeUnicode(str){
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function b64DecodeUnicode(str){
+  return decodeURIComponent(escape(atob(str)));
+}
+function showMsg(el, text, ok){
+  el.textContent = text;
+  el.className = 'msg ' + (ok ? 'ok' : 'err');
+}
+
+const gateView = document.getElementById('gate-view');
+const editorView = document.getElementById('editor-view');
+const passcodeInput = document.getElementById('passcode');
+const gateMsg = document.getElementById('gate-msg');
+const STORAGE_KEY = 'portfolio_admin_passcode_hash';
+
+async function initGate(){
+  const savedHash = localStorage.getItem(STORAGE_KEY);
+  document.getElementById('gate-title').textContent = savedHash ? 'Admin Access' : 'Set a Passcode';
+  document.getElementById('gate-hint').textContent = savedHash
+    ? 'This is a soft local gate only. Nothing is truly protected until you also enter a GitHub token with write access on the next screen — that\'s the real lock.'
+    : 'No passcode is set on this browser yet. Choose one now — it will be required next time you open this page here.';
+}
+initGate();
+
+document.getElementById('gate-submit').addEventListener('click', async ()=>{
+  const val = passcodeInput.value;
+  if(!val){ showMsg(gateMsg, 'Enter a passcode.', false); return; }
+  const savedHash = localStorage.getItem(STORAGE_KEY);
+  if(!savedHash){
+    const hash = await sha256Hex(val);
+    localStorage.setItem(STORAGE_KEY, hash);
+    unlock();
+    return;
+  }
+  const hash = await sha256Hex(val);
+  if(hash === savedHash){ unlock(); }
+  else { showMsg(gateMsg, 'Incorrect passcode.', false); }
+});
+passcodeInput.addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('gate-submit').click(); });
+
+document.getElementById('gate-reset').addEventListener('click', ()=>{
+  if(confirm('Clear the saved passcode on this browser? You will be asked to set a new one.')){
+    localStorage.removeItem(STORAGE_KEY);
+    initGate();
+    showMsg(gateMsg, 'Passcode cleared.', true);
+  }
+});
+
+function unlock(){
+  gateView.style.display = 'none';
+  editorView.style.display = 'block';
+  restoreConnection();
+}
+document.getElementById('btn-lock').addEventListener('click', ()=>{
+  editorView.style.display = 'none';
+  gateView.style.display = 'block';
+  passcodeInput.value = '';
+  document.getElementById('gh-token').value = '';
+});
+
+// ---------- repo connection ----------
+const CONN_KEY = 'portfolio_admin_conn';
+function restoreConnection(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(CONN_KEY) || 'null');
+    if(saved){
+      document.getElementById('gh-owner').value = saved.owner || '';
+      document.getElementById('gh-repo').value = saved.repo || '';
+      document.getElementById('gh-branch').value = saved.branch || 'main';
+      document.getElementById('remember-conn').checked = true;
+    }
+  }catch(e){}
+}
+function maybeSaveConnection(){
+  if(document.getElementById('remember-conn').checked){
+    localStorage.setItem(CONN_KEY, JSON.stringify({
+      owner: document.getElementById('gh-owner').value.trim(),
+      repo: document.getElementById('gh-repo').value.trim(),
+      branch: document.getElementById('gh-branch').value.trim() || 'main'
+    }));
+  } else {
+    localStorage.removeItem(CONN_KEY);
+  }
+}
+
+function getConn(){
+  return {
+    owner: document.getElementById('gh-owner').value.trim(),
+    repo: document.getElementById('gh-repo').value.trim(),
+    branch: document.getElementById('gh-branch').value.trim() || 'main',
+    token: document.getElementById('gh-token').value.trim()
+  };
+}
+
+let currentSha = null;
+
+document.getElementById('btn-load').addEventListener('click', async ()=>{
+  const conn = getConn();
+  const connMsg = document.getElementById('conn-msg');
+  if(!conn.owner || !conn.repo || !conn.token){
+    showMsg(connMsg, 'Fill in owner, repo, and token first.', false); return;
+  }
+  maybeSaveConnection();
+  try{
+    const res = await fetch(`https://api.github.com/repos/${conn.owner}/${conn.repo}/contents/content.json?ref=${encodeURIComponent(conn.branch)}`, {
+      headers: { 'Authorization': `Bearer ${conn.token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if(!res.ok){
+      const body = await res.text();
+      throw new Error(`${res.status} ${res.statusText} — ${body.slice(0,200)}`);
+    }
+    const json = await res.json();
+    currentSha = json.sha;
+    const text = b64DecodeUnicode(json.content.replace(/\n/g,''));
+    document.getElementById('json-editor').value = text;
+    showMsg(connMsg, 'Loaded content.json — sha captured for safe save.', true);
+  }catch(err){
+    showMsg(connMsg, 'Load failed: ' + err.message, false);
+  }
+});
+
+document.getElementById('btn-format').addEventListener('click', ()=>{
+  const ta = document.getElementById('json-editor');
+  try{
+    ta.value = JSON.stringify(JSON.parse(ta.value), null, 2);
+  }catch(err){
+    showMsg(document.getElementById('save-msg'), 'Can\'t format — invalid JSON: ' + err.message, false);
+  }
+});
+
+document.getElementById('btn-download').addEventListener('click', ()=>{
+  const blob = new Blob([document.getElementById('json-editor').value], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'content.json';
+  a.click();
+});
+
+document.getElementById('btn-save').addEventListener('click', async ()=>{
+  const conn = getConn();
+  const saveMsg = document.getElementById('save-msg');
+  const raw = document.getElementById('json-editor').value;
+  if(!conn.owner || !conn.repo || !conn.token){
+    showMsg(saveMsg, 'Fill in owner, repo, and token first.', false); return;
+  }
+  let parsed;
+  try{ parsed = JSON.parse(raw); }
+  catch(err){ showMsg(saveMsg, 'Invalid JSON — fix before saving: ' + err.message, false); return; }
+
+  maybeSaveConnection();
+  const cleanJson = JSON.stringify(parsed, null, 2);
+
+  try{
+    // Fetch latest sha right before writing, to avoid clobbering a newer save.
+    const getRes = await fetch(`https://api.github.com/repos/${conn.owner}/${conn.repo}/contents/content.json?ref=${encodeURIComponent(conn.branch)}`, {
+      headers: { 'Authorization': `Bearer ${conn.token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if(getRes.ok){
+      const getJson = await getRes.json();
+      currentSha = getJson.sha;
+    }
+
+    const body = {
+      message: 'Update portfolio content via admin panel',
+      content: b64EncodeUnicode(cleanJson),
+      branch: conn.branch
+    };
+    if(currentSha) body.sha = currentSha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${conn.owner}/${conn.repo}/contents/content.json`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${conn.token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if(!putRes.ok){
+      const errBody = await putRes.text();
+      throw new Error(`${putRes.status} ${putRes.statusText} — ${errBody.slice(0,300)}`);
+    }
+    const putJson = await putRes.json();
+    currentSha = putJson.content.sha;
+    showMsg(saveMsg, 'Saved — pushed to ' + conn.branch + '. GitHub Pages will update shortly.', true);
+  }catch(err){
+    showMsg(saveMsg, 'Save failed: ' + err.message, false);
+  }
+});
+</script>
+</body>
+</html>
