@@ -1,5 +1,4 @@
 // Renders the public portfolio page from content.json.
-// Cache-bust so edits saved via the admin panel show up immediately.
 const DATA_URL = 'content.json?t=' + Date.now();
 
 function esc(str){
@@ -8,42 +7,24 @@ function esc(str){
   return d.innerHTML;
 }
 
-function laddderSVG(label){
-  return `<svg viewBox="0 0 900 34"><g class="rail"><line x1="20" y1="4" x2="20" y2="30"/><line x1="880" y1="4" x2="880" y2="30"/></g>
-  <g class="rung">
-    <line x1="20" y1="17" x2="880" y2="17"/>
-    <line x1="120" y1="10" x2="120" y2="24"/><line x1="240" y1="10" x2="240" y2="24"/>
-    <line x1="360" y1="10" x2="360" y2="24"/><line x1="480" y1="10" x2="480" y2="24"/>
-    <line x1="600" y1="10" x2="600" y2="24"/><line x1="720" y1="10" x2="720" y2="24"/>
-  </g>
-  <text class="label" x="20" y="12">${esc(label)}</text>
-  </svg>`;
-}
-
 function render(data){
   const p = data.profile || {};
   document.title = `${p.name || 'Portfolio'} — ${p.title || ''}`;
 
-  // header / nameplate
+  // header
   document.getElementById('header-slot').innerHTML = `
-    <div class="plate nameplate reveal">
-      <span class="rm-bl"></span><span class="rm-br"></span>
-      <div class="nameplate-top">
+    <div class="card reveal">
+      <div class="nameplate">
         <div>
           <h1>${esc(p.name)}</h1>
           <span class="role-tag">${esc(p.title)}</span>
         </div>
-        <div class="plate-id mono">
-          UNIT&nbsp;PLATE&nbsp;NO. <span class="id-val">${esc(p.plateNo)}</span><br>
-          ${esc(p.rev)}
-        </div>
+        <div class="meta-line mono">${esc(p.domicile)}<br>${esc(p.status)}</div>
       </div>
-      <div class="spec-fields">
-        <div class="spec-field"><div class="k">Domicile</div><div class="v">${esc(p.domicile)}</div></div>
-        <div class="spec-field"><div class="k">Status</div><div class="v">${esc(p.status)}</div></div>
-        <div class="spec-field"><div class="k">Phone</div><div class="v"><a href="tel:${esc(p.phoneHref)}">${esc(p.phoneDisplay)}</a></div></div>
-        <div class="spec-field"><div class="k">Email</div><div class="v"><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div></div>
-        <div class="spec-field"><div class="k">LinkedIn</div><div class="v"><a href="${esc(p.linkedinUrl)}" target="_blank" rel="noopener">${esc(p.linkedinDisplay)}</a></div></div>
+      <div class="contact-chips">
+        <a href="tel:${esc(p.phoneHref)}">${esc(p.phoneDisplay)}</a>
+        <a href="mailto:${esc(p.email)}">${esc(p.email)}</a>
+        <a href="${esc(p.linkedinUrl)}" target="_blank" rel="noopener">${esc(p.linkedinDisplay)}</a>
       </div>
     </div>`;
 
@@ -57,21 +38,18 @@ function render(data){
     polyPoints += `${x},${y} `;
     ptMarkup += `
       <g>
-        <circle class="trace-pt" cx="${x}" cy="${y}" r="6"></circle>
+        <circle class="trace-pt" cx="${x}" cy="${y}" r="7"></circle>
         <text class="pt-metric" x="${x}" y="${y-20}" text-anchor="middle">${esc(pt.metric)}</text>
         <text class="pt-label" x="${x}" y="292" text-anchor="middle">${esc(pt.label)}</text>
         <text class="axis-label" x="${x}" y="308" text-anchor="middle">${esc(pt.year)}</text>
       </g>`;
   });
   document.getElementById('hero-slot').innerHTML = `
-    <div class="section-head reveal">
-      <span class="idx">01</span><h2>Process Capability — Career Trace</h2><span class="rule"></span>
-    </div>
+    <div class="section-head reveal"><span class="idx">1</span><h2>Process Capability — Career Trace</h2></div>
     <p class="chart-intro reveal">${esc(data.hero && data.hero.intro)}</p>
-    <div class="plate chart-box reveal">
-      <span class="rm-bl"></span><span class="rm-br"></span>
+    <div class="card chart-box reveal">
       <svg viewBox="0 0 900 340" id="chart-svg" role="img" aria-label="Control chart of career improvement metrics, all within spec limits.">
-        <g stroke="#d7d5c8" stroke-width="1">
+        <g stroke="#EEE7D2" stroke-width="1">
           <line x1="70" y1="40" x2="70" y2="270"/>
           <line x1="70" y1="270" x2="860" y2="270"/>
         </g>
@@ -79,7 +57,7 @@ function render(data){
         <text class="limit-label" x="800" y="63">UCL</text>
         <line class="limit-line" x1="70" y1="250" x2="860" y2="250"/>
         <text class="limit-label" x="800" y="264">LCL</text>
-        <line x1="70" y1="160" x2="860" y2="160" stroke="#767d87" stroke-width="1" stroke-dasharray="2 4"/>
+        <line x1="70" y1="160" x2="860" y2="160" stroke="#C9D2D8" stroke-width="1" stroke-dasharray="2 4"/>
         <polyline class="trace-line" id="trace-poly" points="${polyPoints.trim()}"></polyline>
         ${ptMarkup}
         <text class="axis-label" x="12" y="45">&#916; IMPROVEMENT</text>
@@ -89,9 +67,8 @@ function render(data){
   // experience
   const exp = data.experience || [];
   document.getElementById('experience-slot').innerHTML = `
-    <div class="section-head reveal"><span class="idx">02</span><h2>Work History</h2><span class="rule"></span></div>
-    <div class="plate reveal" style="padding:8px 28px;">
-      <span class="rm-bl"></span><span class="rm-br"></span>
+    <div class="section-head reveal"><span class="idx">2</span><h2>Work History</h2></div>
+    <div class="card reveal">
       ${exp.map(e => `
         <div class="station">
           <div class="when">${esc(e.when)}</div>
@@ -107,11 +84,11 @@ function render(data){
   // skills
   const bins = data.skillBins || [];
   document.getElementById('skills-slot').innerHTML = `
-    <div class="section-head reveal"><span class="idx">03</span><h2>Toolboard</h2><span class="rule"></span></div>
+    <div class="section-head reveal"><span class="idx">3</span><h2>Toolboard</h2></div>
     <div class="toolboard reveal">
       ${bins.map(b => `
         <div class="bin">
-          <div class="bin-head"><h3>${esc(b.title)}</h3><span class="no">${esc(b.no)}</span></div>
+          <div class="bin-head"><h3>${esc(b.title)}</h3></div>
           <div class="chips">${(b.chips||[]).map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>
         </div>`).join('')}
     </div>`;
@@ -120,10 +97,9 @@ function render(data){
   const edu = data.education || [];
   const certs = data.certifications || [];
   document.getElementById('education-slot').innerHTML = `
-    <div class="section-head reveal"><span class="idx">04</span><h2>Education &amp; Credentials</h2><span class="rule"></span></div>
+    <div class="section-head reveal"><span class="idx">4</span><h2>Education &amp; Credentials</h2></div>
     <div class="two-col">
-      <div class="plate reveal" style="padding:20px 24px;">
-        <span class="rm-bl"></span><span class="rm-br"></span>
+      <div class="card reveal">
         ${edu.map(e => `
           <div class="edu-card">
             <div class="school">${esc(e.school)}</div>
@@ -131,8 +107,7 @@ function render(data){
             <div class="meta">${esc(e.meta)}</div>
           </div>`).join('')}
       </div>
-      <div class="plate reveal" style="padding:20px 24px;">
-        <span class="rm-bl"></span><span class="rm-br"></span>
+      <div class="card reveal">
         ${certs.map(c => `
           <div class="cred">
             <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title)}</a>
@@ -144,7 +119,7 @@ function render(data){
   // projects
   const projs = data.projects || [];
   document.getElementById('projects-slot').innerHTML = `
-    <div class="section-head reveal"><span class="idx">05</span><h2>Project Travelers</h2><span class="rule"></span></div>
+    <div class="section-head reveal"><span class="idx">5</span><h2>Project Highlights</h2></div>
     <div class="travelers">
       ${projs.map(pr => `
         <div class="traveler reveal">
@@ -158,9 +133,8 @@ function render(data){
   // achievements
   const ach = data.achievements || [];
   document.getElementById('achievements-slot').innerHTML = `
-    <div class="section-head reveal"><span class="idx">06</span><h2>Organization &amp; Competition Record</h2><span class="rule"></span></div>
-    <div class="plate reveal" style="padding:6px 24px;">
-      <span class="rm-bl"></span><span class="rm-br"></span>
+    <div class="section-head reveal"><span class="idx">6</span><h2>Organization &amp; Competition Record</h2></div>
+    <div class="card reveal">
       <ul class="ach-list">
         ${ach.map(a => `<li><span class="tag">${esc(a.tag)}</span>${esc(a.text)}</li>`).join('')}
       </ul>
@@ -180,11 +154,6 @@ function render(data){
       </div>
       <div class="plate-foot">${esc(p.name)} · ${esc(f.plateFoot)}</div>
     </div>`;
-
-  // ladder dividers
-  document.getElementById('ladder-1').innerHTML = laddderSVG('RUNG 02 — WORK HISTORY');
-  document.getElementById('ladder-2').innerHTML = laddderSVG('RUNG 03 — TOOLBOARD');
-  document.getElementById('ladder-3').innerHTML = laddderSVG('RUNG 04 — PROJECT TRAVELERS');
 
   // reveal-on-scroll
   const els = document.querySelectorAll('.reveal');
@@ -216,5 +185,5 @@ fetch(DATA_URL)
   .then(render)
   .catch(err => {
     document.getElementById('header-slot').innerHTML =
-      `<p style="padding:40px; color:#B0472B;">Could not load content.json — ${esc(err.message)}</p>`;
+      `<p style="padding:40px; color:#8A3A1F;">Could not load content.json — ${esc(err.message)}</p>`;
   });

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Portfolio Editor</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <h1>Portfolio Editor</h1>
+  <p class="hint">Edits live in <code>content.json</code> in your GitHub repo. Saving here commits directly to
+  that repo via the GitHub API — GitHub Pages picks it up within about a minute. There's no password step:
+  the token below is what actually controls who can save, since only someone with write access to your
+  repo can generate one.</p>
+
+  <div class="card" style="margin:24px 0;">
+    <h2 style="font-size:1rem; margin-bottom:16px;">Repository connection</h2>
+    <div class="row">
+      <div class="field" style="flex:1; min-width:160px;">
+        <label for="gh-owner">GitHub username / org</label>
+        <input type="text" id="gh-owner" placeholder="e.g. denfa19">
+      </div>
+      <div class="field" style="flex:1; min-width:160px;">
+        <label for="gh-repo">Repository name</label>
+        <input type="text" id="gh-repo" placeholder="e.g. Portofolio">
+      </div>
+      <div class="field" style="flex:1; min-width:120px;">
+        <label for="gh-branch">Branch</label>
+        <input type="text" id="gh-branch" value="main">
+      </div>
+    </div>
+    <div class="field">
+      <label for="gh-token">GitHub personal access token (fine-grained, Contents: Read &amp; Write, this repo only)</label>
+      <input type="password" id="gh-token" placeholder="github_pat_…" autocomplete="off">
+    </div>
+    <div class="row">
+      <button class="btn secondary" id="btn-load">Load content.json from repo</button>
+      <label class="hint" style="display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="remember-conn" style="width:auto;"> remember owner/repo/branch on this browser
+      </label>
+    </div>
+    <div class="msg" id="conn-msg"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1rem; margin-bottom:16px;">content.json</h2>
+    <div class="field">
+      <textarea id="json-editor" rows="26" spellcheck="false" placeholder="Click &quot;Load content.json from repo&quot; above, or paste JSON here manually."></textarea>
+    </div>
+    <div class="row">
+      <button class="btn" id="btn-save">Save to GitHub</button>
+      <button class="btn secondary" id="btn-format">Format JSON</button>
+      <button class="btn secondary" id="btn-download">Download as file</button>
+      <a href="index.html" target="_blank" class="btn secondary" style="text-decoration:none; display:inline-block;">Preview live site</a>
+    </div>
+    <div class="msg" id="save-msg"></div>
+  </div>
+
+  <p class="hint" style="margin-top:20px;">Prefer editing by hand instead? You can also open
+  <code>content.json</code> (or <code>index.html</code>/<code>app.js</code> for structural changes) directly
+  on GitHub.com and commit there — this page is just a convenience, not the only way in.</p>
+</div>
+
+<script>
+function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
+function showMsg(el, text, ok){ el.textContent = text; el.className = 'msg ' + (ok ? 'ok' : 'err'); }
+
+const CONN_KEY = 'portfolio_admin_conn';
+function restoreConnection(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(CONN_KEY) || 'null');
+    if(saved){
+      document.getElementById('gh-owner').value = saved.owner || '';
+      document.getElementById('gh-repo').value = saved.repo || '';
+      document.getElementById('gh-branch').value = saved.branch || 'main';
+      document.getElementById('remember-conn').checked = true;
+    }
+  }catch(e){}
+}
+restoreConnection();
+
+function maybeSaveConnection(){
+  if(document.getElementById('remember-conn').checked){
+    localStorage.setItem(CONN_KEY, JSON.stringify({
+      owner: document.getElementById('gh-owner').value.trim(),
+      repo: document.getElementById('gh-repo').value.trim(),
+      branch: document.getElementById('gh-branch').value.trim() || 'main'
+    }));
+  } else {
+    localStorage.removeItem(CONN_KEY);
+  }
+}
+
+function getConn(){
+  return {
+    owner: document.getElementById('gh-owner').value.trim(),
+    repo: document.getElementById('gh-repo').value.trim(),
+    branch: document.getElementById('gh-branch').value.trim() || 'main',
+    token: document.getElementById('gh-token').value.trim()
+  };
+}
+
+let currentSha = null;
+
+document.getElementById('btn-load').addEventListener('click', async ()=>{
+  const conn = getConn();
+  const connMsg = document.getElementById('conn-msg');
+  if(!conn.owner || !conn.repo || !conn.token){
+    showMsg(connMsg, 'Fill in owner, repo, and token first.', false); return;
+  }
+  maybeSaveConnection();
+  try{
+    const res = await fetch(`https://api.github.com/repos/${conn.owner}/${conn.repo}/contents/content.json?ref=${encodeURIComponent(conn.branch)}`, {
+      headers: { 'Authorization': `Bearer ${conn.token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if(!res.ok){
+      const body = await res.text();
+      throw new Error(`${res.status} ${res.statusText} — ${body.slice(0,200)}`);
+    }
+    const json = await res.json();
+    currentSha = json.sha;
+    const text = b64DecodeUnicode(json.content.replace(/\n/g,''));
+    document.getElementById('json-editor').value = text;
+    showMsg(connMsg, 'Loaded content.json — ready to edit.', true);
+  }catch(err){
+    showMsg(connMsg, 'Load failed: ' + err.message, false);
+  }
+});
+
+document.getElementById('btn-format').addEventListener('click', ()=>{
+  const ta = document.getElementById('json-editor');
+  try{ ta.value = JSON.stringify(JSON.parse(ta.value), null, 2); }
+  catch(err){ showMsg(document.getElementById('save-msg'), 'Can\'t format — invalid JSON: ' + err.message, false); }
+});
+
+document.getElementById('btn-download').addEventListener('click', ()=>{
+  const blob = new Blob([document.getElementById('json-editor').value], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'content.json';
+  a.click();
+});
+
+document.getElementById('btn-save').addEventListener('click', async ()=>{
+  const conn = getConn();
+  const saveMsg = document.getElementById('save-msg');
+  const raw = document.getElementById('json-editor').value;
+  if(!conn.owner || !conn.repo || !conn.token){
+    showMsg(saveMsg, 'Fill in owner, repo, and token first.', false); return;
+  }
+  let parsed;
+  try{ parsed = JSON.parse(raw); }
+  catch(err){ showMsg(saveMsg, 'Invalid JSON — fix before saving: ' + err.message, false); return; }
+
+  maybeSaveConnection();
+  const cleanJson = JSON.stringify(parsed, null, 2);
+
+  try{
+    const getRes = await fetch(`https://api.github.com/repos/${conn.owner}/${conn.repo}/contents/content.json?ref=${encodeURIComponent(conn.branch)}`, {
+      headers: { 'Authorization': `Bearer ${conn.token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if(getRes.ok){ currentSha = (await getRes.json()).sha; }
+
+    const body = {
+      message: 'Update portfolio content via admin panel',
+      content: b64EncodeUnicode(cleanJson),
+      branch: conn.branch
+    };
+    if(currentSha) body.sha = currentSha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${conn.owner}/${conn.repo}/contents/content.json`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${conn.token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if(!putRes.ok){
+      const errBody = await putRes.text();
+      throw new Error(`${putRes.status} ${putRes.statusText} — ${errBody.slice(0,300)}`);
+    }
+    currentSha = (await putRes.json()).content.sha;
+    showMsg(saveMsg, 'Saved — pushed to ' + conn.branch + '. GitHub Pages will update shortly.', true);
+  }catch(err){
+    showMsg(saveMsg, 'Save failed: ' + err.message, false);
+  }
+});
+</script>
+</body>
+</html>
